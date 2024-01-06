@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::{prelude::*, window::WindowResolution};
 
 fn main() {
@@ -14,9 +16,15 @@ fn main() {
         }))
         .add_systems(Startup, (
             spawn_camera,
-            spawn_basic_scene
+            spawn_basic_scene,
         ))
+        .add_systems(Update, tower_shooting)
         .run();
+}
+
+#[derive(Component)]
+pub struct Tower {
+    shooting_timer: Timer,
 }
 
 fn spawn_camera(mut commands: Commands) {
@@ -48,11 +56,37 @@ fn spawn_basic_scene(
     })
     .insert(Name::new("Ground"));
 
-    commands.spawn(PbrBundle { // A Cube
+    commands.spawn(PbrBundle { // A Tower
         mesh: meshes.add(Mesh::from(shape::Cube { size: 1., ..Default::default() })),
         material: materials.add(Color::rgb(0.67, 0.84, 0.92).into()),
         transform: Transform::from_xyz(0., 0.5, 0.),
         ..Default::default()
     })
-    .insert(Name::new("Cube"));
+    .insert(Tower {
+        shooting_timer: Timer::from_seconds(1., TimerMode::Repeating),
+    })
+    .insert(Name::new("Tower"));
+}
+
+fn tower_shooting(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut towers: Query<&mut Tower>,
+    time: Res<Time>,
+) {
+    for mut tower in &mut towers {
+        tower.shooting_timer.tick(time.delta());
+        if tower.shooting_timer.just_finished() {
+            let spawn_transform =
+                Transform::from_xyz(0.0, 0.7, 0.6).with_rotation(Quat::from_rotation_y(-PI / 2.0));
+            
+            commands.spawn(PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1, ..Default::default() })),
+                material: materials.add(Color::rgb(0.87, 0.44, 0.42).into()),
+                transform: spawn_transform,
+                ..Default::default()
+            }).insert(Name::new("Bullet"));
+        }
+    }
 }
