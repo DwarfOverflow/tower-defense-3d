@@ -30,6 +30,11 @@ pub struct Tower {
     shooting_timer: Timer,
 }
 
+#[derive(Reflect, Component, Default)]
+pub struct Lifetime {
+    timer: Timer,
+}
+
 fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera3dBundle {
         transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -89,7 +94,22 @@ fn tower_shooting(
                 material: materials.add(Color::rgb(0.87, 0.44, 0.42).into()),
                 transform: spawn_transform,
                 ..Default::default()
-            }).insert(Name::new("Bullet"));
+            })
+            .insert(Lifetime { timer: Timer::from_seconds(0.5, TimerMode::Once)})
+            .insert(Name::new("Bullet"));
+        }
+    }
+}
+
+fn bullet_dispawn(
+    mut commands: Commands,
+    mut bullets: Query<(Entity, &mut Lifetime)>,
+    time: Res<Time>,
+) {
+    for (entity, mut lifetime) in &mut bullets.iter_mut() {
+        lifetime.timer.tick(time.delta());
+        if lifetime.timer.just_finished() {
+            commands.entity(entity).despawn();
         }
     }
 }
