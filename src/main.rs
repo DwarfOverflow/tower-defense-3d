@@ -1,4 +1,5 @@
 use std::f32::consts::PI;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use bevy::{prelude::*, window::WindowResolution};
 
@@ -14,6 +15,8 @@ fn main() {
             }),
             ..default()
         }))
+        .add_plugins(WorldInspectorPlugin::new())
+        .register_type::<Tower>()
         .add_systems(Startup, (
             spawn_camera,
             spawn_basic_scene,
@@ -22,7 +25,7 @@ fn main() {
         .run();
 }
 
-#[derive(Component)]
+#[derive(Reflect, Component, Default)]
 pub struct Tower {
     shooting_timer: Timer,
 }
