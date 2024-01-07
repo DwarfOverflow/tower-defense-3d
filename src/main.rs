@@ -20,8 +20,12 @@ fn main() {
         .add_systems(Startup, (
             spawn_camera,
             spawn_basic_scene,
+            asset_loading
         ))
-        .add_systems(Update, tower_shooting)
+        .add_systems(Update, (
+            tower_shooting,
+            bullet_dispawn
+        ))
         .run();
 }
 
@@ -78,9 +82,8 @@ fn spawn_basic_scene(
 
 fn tower_shooting(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut towers: Query<&mut Tower>,
+    bullet_assets: Res<GameAssets>,
     time: Res<Time>,
 ) {
     for mut tower in &mut towers {
@@ -89,14 +92,15 @@ fn tower_shooting(
             let spawn_transform =
                 Transform::from_xyz(0.0, 0.7, 0.6).with_rotation(Quat::from_rotation_y(-PI / 2.0));
             
-            commands.spawn(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1, ..Default::default() })),
-                material: materials.add(Color::rgb(0.87, 0.44, 0.42).into()),
-                transform: spawn_transform,
-                ..Default::default()
-            })
-            .insert(Lifetime { timer: Timer::from_seconds(0.5, TimerMode::Once)})
-            .insert(Name::new("Bullet"));
+            commands.spawn((
+                SceneBundle {
+                    scene: bullet_assets.bullet_scene.clone(),
+                    transform: spawn_transform,
+                    ..Default::default()
+                },
+                Lifetime { timer: Timer::from_seconds(0.5, TimerMode::Once)},
+                Name::new("Bullet")
+            ));
         }
     }
 }
@@ -109,7 +113,21 @@ fn bullet_dispawn(
     for (entity, mut lifetime) in &mut bullets.iter_mut() {
         lifetime.timer.tick(time.delta());
         if lifetime.timer.just_finished() {
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
+}
+
+#[derive(Resource, Clone)]
+pub struct GameAssets {
+    bullet_scene: Handle<Scene>,
+}
+
+fn asset_loading(
+    mut commands: Commands,
+    assets: Res<AssetServer>
+) {
+    commands.insert_resource(GameAssets {
+        bullet_scene: assets.load("Bullet.glb#Scene0"),
+    });
 }
