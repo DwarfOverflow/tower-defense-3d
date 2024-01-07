@@ -1,6 +1,14 @@
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-use bevy::{prelude::*, window::WindowResolution, utils::FloatOrd};
+use bevy::{prelude::*, window::WindowResolution};
+
+mod bullet;
+mod target;
+mod tower;
+
+pub use bullet::*;
+pub use target::*;
+pub use tower::*;
 
 fn main() {
     App::new()
@@ -15,34 +23,15 @@ fn main() {
             ..default()
         }))
         .add_plugins(WorldInspectorPlugin::new())
-        .register_type::<Tower>()
-        .register_type::<Target>()
-        .register_type::<Lifetime>()
+        .add_plugins(TowerPlugin)
+        .add_plugins(BulletPlugin)
+        .add_plugins(TargetPlugin)
         .add_systems(Startup, (
             spawn_camera,
             spawn_basic_scene,
             asset_loading
         ))
-        .add_systems(Update, (
-            tower_shooting,
-            bullet_dispawn,
-            move_targets,
-            move_bullets,
-            target_death,
-            bullet_collision
-        ))
         .run();
-}
-
-#[derive(Reflect, Component, Default)]
-pub struct Tower {
-    pub shooting_timer: Timer,
-    bullet_offset: Vec3,
-}
-
-#[derive(Reflect, Component, Default)]
-pub struct Lifetime {
-    timer: Timer,
 }
 
 fn spawn_camera(mut commands: Commands) {
@@ -111,74 +100,6 @@ fn spawn_basic_scene(
     ));
 }
 
-fn tower_shooting(
-    mut commands: Commands,
-    mut towers: Query<(Entity, &mut Tower, &GlobalTransform)>,
-    targets: Query<&GlobalTransform, With<Target>>,
-    bullet_assets: Res<GameAssets>,
-    time: Res<Time>,
-) {
-    for (tower_ent, mut tower, transform) in &mut towers {
-        tower.shooting_timer.tick(time.delta());
-        if tower.shooting_timer.just_finished() {
-            let bullet_spawn = transform.translation() + tower.bullet_offset;
-
-            let direction = targets
-                .iter()
-                .min_by_key(|target_transform| {
-                    FloatOrd(Vec3::distance(target_transform.translation(), bullet_spawn))
-                })
-                .map(|closest_target| closest_target.translation() - bullet_spawn);
-
-            if let Some(direction) = direction {
-                commands.entity(tower_ent).with_children(|commands| {
-                    commands.spawn((
-                        SceneBundle {
-                            scene: bullet_assets.bullet_scene.clone(),
-                            transform: Transform::from_translation(tower.bullet_offset),
-                            ..Default::default()
-                        },
-                        Lifetime { timer: Timer::from_seconds(0.5, TimerMode::Once)},
-                        Bullet {
-                            direction,
-                            speed: 2.5
-                        },
-                        Name::new("Bullet")
-                    ));
-                });
-            }
-        }
-    }
-}
-
-#[derive(Component, Reflect, Default)]
-pub struct Bullet {
-    direction: Vec3,
-    speed: f32,
-}
-
-fn bullet_dispawn(
-    mut commands: Commands,
-    mut bullets: Query<(Entity, &mut Lifetime)>,
-    time: Res<Time>,
-) {
-    for (entity, mut lifetime) in &mut bullets.iter_mut() {
-        lifetime.timer.tick(time.delta());
-        if lifetime.timer.just_finished() {
-            commands.entity(entity).despawn_recursive();
-        }
-    }
-}
-
-fn move_bullets(
-    mut bullets: Query<(&Bullet, &mut Transform)>,
-    time: Res<Time>
-) {
-    for (bullet, mut transform) in &mut bullets {
-        transform.translation += bullet.direction.normalize() * bullet.speed * time.delta_seconds();
-    }
-}
-
 #[derive(Resource, Clone)]
 pub struct GameAssets {
     bullet_scene: Handle<Scene>,
@@ -191,50 +112,4 @@ fn asset_loading(
     commands.insert_resource(GameAssets {
         bullet_scene: assets.load("Bullet.glb#Scene0"),
     });
-}
-
-#[derive(Component, Reflect, Default)]
-pub struct Target {
-    speed: f32,
-}
-
-#[derive(Component, Reflect, Default)]
-pub struct Health {
-    value: i32,
-}
-
-fn move_targets(
-    mut targets: Query<(&Target, &mut Transform)>,
-    time: Res<Time>,
-) {
-    for (target, mut transform) in &mut targets {
-        transform.translation.x += target.speed * time.delta_seconds();
-    }
-}
-
-fn target_death(
-    mut commands: Commands,
-    targets: Query<(Entity, &Health)>
-) {
-    for (ent, health) in &targets {
-        if health.value <= 0 {
-            commands.entity(ent).despawn_recursive();
-        }
-    }
-}
-
-fn bullet_collision(
-    mut commands: Commands,
-    bullets: Query<(Entity, &GlobalTransform), With<Bullet>>,
-    mut targets: Query<(&mut Health, &Transform), With<Target>>,
-) {
-    for (bullet, bullet_transform) in &bullets {
-        for (mut health, target_transform) in &mut targets {
-            if Vec3::distance(bullet_transform.translation(), target_transform.translation) < 0.2 {
-                commands.entity(bullet).despawn_recursive();
-                health.value -= 1;
-                break;
-            }
-        }
-    }
 }
