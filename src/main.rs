@@ -27,7 +27,8 @@ fn main() {
             tower_shooting,
             bullet_dispawn,
             move_targets,
-            move_bullets
+            move_bullets,
+            target_death
         ))
         .run();
 }
@@ -207,5 +208,16 @@ fn move_targets(
 ) {
     for (target, mut transform) in &mut targets {
         transform.translation.x += target.speed * time.delta_seconds();
+    }
+}
+
+fn target_death(
+    mut commands: Commands,
+    targets: Query<(Entity, &Health)>
+) {
+    for (ent, health) in &targets {
+        if health.value <= 0 {
+            commands.entity(ent).despawn_recursive();
+        }
     }
 }
