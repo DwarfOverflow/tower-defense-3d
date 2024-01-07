@@ -31,6 +31,7 @@ fn main() {
             spawn_basic_scene,
             asset_loading
         ))
+        .add_systems(Update, camera_controls)
         .run();
 }
 
@@ -49,6 +50,43 @@ fn spawn_camera(mut commands: Commands) {
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
         ..Default::default()
     }).insert(Name::new("Light"));
+}
+
+fn camera_controls(
+    keyboard: Res<Input<KeyCode>>,
+    mut camera_query: Query<&mut Transform, With<Camera3d>>,
+    time: Res<Time>,
+) {
+    let mut camera = camera_query.single_mut();
+
+    let mut forward = camera.forward();
+    forward.y = 0.0;
+    forward = forward.normalize();
+    let mut left = camera.left();
+    left.y = 0.0;
+    left = left.normalize();
+
+    let speed = 3.;
+    let rotate_speed = 0.3;
+
+    if keyboard.pressed(KeyCode::Z) {
+        camera.translation += forward * time.delta_seconds() * speed;
+    }
+    if keyboard.pressed(KeyCode::S) {
+        camera.translation -= forward * time.delta_seconds() * speed;
+    }
+    if keyboard.pressed(KeyCode::D) {
+        camera.translation -= left * time.delta_seconds() * speed;
+    }
+    if keyboard.pressed(KeyCode::Q) {
+        camera.translation += left * time.delta_seconds() * speed;
+    }
+    if keyboard.pressed(KeyCode::A) {
+        camera.rotate_axis(Vec3::Y, rotate_speed * time.delta_seconds())
+    }
+    if keyboard.pressed(KeyCode::E) {
+        camera.rotate_axis(Vec3::Y, -rotate_speed * time.delta_seconds())
+    }
 }
 
 fn spawn_basic_scene(
