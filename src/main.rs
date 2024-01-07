@@ -28,7 +28,8 @@ fn main() {
             bullet_dispawn,
             move_targets,
             move_bullets,
-            target_death
+            target_death,
+            bullet_collision
         ))
         .run();
 }
@@ -218,6 +219,22 @@ fn target_death(
     for (ent, health) in &targets {
         if health.value <= 0 {
             commands.entity(ent).despawn_recursive();
+        }
+    }
+}
+
+fn bullet_collision(
+    mut commands: Commands,
+    bullets: Query<(Entity, &GlobalTransform), With<Bullet>>,
+    mut targets: Query<(&mut Health, &Transform), With<Target>>,
+) {
+    for (bullet, bullet_transform) in &bullets {
+        for (mut health, target_transform) in &mut targets {
+            if Vec3::distance(bullet_transform.translation(), target_transform.translation) < 0.2 {
+                commands.entity(bullet).despawn_recursive();
+                health.value -= 1;
+                break;
+            }
         }
     }
 }
