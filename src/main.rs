@@ -17,6 +17,8 @@ fn main() {
         }))
         .add_plugins(WorldInspectorPlugin::new())
         .register_type::<Tower>()
+        .register_type::<Target>()
+        .register_type::<Lifetime>()
         .add_systems(Startup, (
             spawn_camera,
             spawn_basic_scene,
@@ -78,6 +80,30 @@ fn spawn_basic_scene(
         shooting_timer: Timer::from_seconds(1., TimerMode::Repeating),
     })
     .insert(Name::new("Tower"));
+
+    commands.spawn(( // Target
+        PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Cube {size: 0.4, ..Default::default()})),
+            material: materials.add(Color::rgb(0.67, 0.84, 0.92).into()),
+            transform: Transform::from_xyz(-2.0, 0.2, 1.5),
+            ..Default::default()
+        },
+        Target { speed: 0.3 },
+        Health { value: 3},
+        Name::new("Target"),
+    ));
+
+    commands.spawn(( // Target
+        PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Cube {size: 0.4, ..Default::default()})),
+            material: materials.add(Color::rgb(0.67, 0.84, 0.92).into()),
+            transform: Transform::from_xyz(-3.0, 0.2, 1.5),
+            ..Default::default()
+        },
+        Target { speed: 0.3 },
+        Health { value: 3},
+        Name::new("Target"),
+    ));
 }
 
 fn tower_shooting(
@@ -131,3 +157,14 @@ fn asset_loading(
         bullet_scene: assets.load("Bullet.glb#Scene0"),
     });
 }
+
+#[derive(Component, Reflect, Default)]
+pub struct Target {
+    speed: f32,
+}
+
+#[derive(Component, Reflect, Default)]
+pub struct Health {
+    value: i32,
+}
+
