@@ -67,25 +67,18 @@ fn camera_controls(
     left = left.normalize();
 
     let speed = 3.;
-    let rotate_speed = 0.3;
 
-    if keyboard.pressed(KeyCode::Z) {
+    if keyboard.pressed(KeyCode::Up) {
         camera.translation += forward * time.delta_seconds() * speed;
     }
-    if keyboard.pressed(KeyCode::S) {
+    if keyboard.pressed(KeyCode::Down) {
         camera.translation -= forward * time.delta_seconds() * speed;
     }
-    if keyboard.pressed(KeyCode::D) {
+    if keyboard.pressed(KeyCode::Right) {
         camera.translation -= left * time.delta_seconds() * speed;
     }
-    if keyboard.pressed(KeyCode::Q) {
+    if keyboard.pressed(KeyCode::Left) {
         camera.translation += left * time.delta_seconds() * speed;
-    }
-    if keyboard.pressed(KeyCode::A) {
-        camera.rotate_axis(Vec3::Y, rotate_speed * time.delta_seconds())
-    }
-    if keyboard.pressed(KeyCode::E) {
-        camera.rotate_axis(Vec3::Y, -rotate_speed * time.delta_seconds())
     }
 }
 
@@ -95,7 +88,7 @@ fn spawn_basic_scene(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands.spawn(PbrBundle { // The Ground
-        mesh: meshes.add(Mesh::from(shape::Plane { size: 5., ..Default::default() })),
+        mesh: meshes.add(Mesh::from(shape::Plane { size: 25., ..Default::default() })),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..Default::default()
     })
