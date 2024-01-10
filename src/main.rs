@@ -1,6 +1,8 @@
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_inspector_egui::{quick::WorldInspectorPlugin, egui::{style::Selection, SelectableLabel}, bevy_inspector::hierarchy::SelectedEntities};
 
-use bevy::{prelude::*, window::WindowResolution};
+use bevy::{prelude::*, window::WindowResolution, pbr::NotShadowCaster, transform::commands};
+
+use bevy_mod_picking::{*, picking_core::Pickable, highlight::Highlight};
 
 mod bullet;
 mod target;
@@ -26,6 +28,7 @@ fn main() {
         .add_plugins(TowerPlugin)
         .add_plugins(BulletPlugin)
         .add_plugins(TargetPlugin)
+        .add_plugins(DefaultPickingPlugins)
         .add_systems(Startup, (
             spawn_camera,
             asset_loading
@@ -126,6 +129,29 @@ fn spawn_basic_scene(
         Health { value: 3},
         Name::new("Target"),
     ));
+
+    let default_collider_color = materials.add(Color::rgba(0.3, 0.5, 0.3, 0.3).into());
+    let selected_collider_color = materials.add(Color::rgba(0.3, 0.9, 0.3, 0.9).into());
+
+    commands.spawn((
+        SpatialBundle::from_transform(Transform::from_xyz(0.0, 0.8, 0.0)),
+        meshes.add(shape::Capsule::default().into()),
+        NotShadowCaster,
+        Highlight {
+            hovered: Some(bevy_mod_picking::prelude::HighlightKind::Fixed(selected_collider_color.clone())),
+            pressed: Some(bevy_mod_picking::prelude::HighlightKind::Fixed(selected_collider_color.clone())),
+            selected: Some(bevy_mod_picking::prelude::HighlightKind::Fixed(selected_collider_color)),
+        },
+        default_collider_color,
+        PickableBundle::default(),
+        Name::new("Tower_Base")
+    )).with_children(|commands| {
+        commands.spawn(SceneBundle {
+            scene: game_assets.tower_base_scene.clone(),
+            transform: Transform::from_xyz(0.0, -0.8, 0.0),
+            ..Default::default()
+        });
+    });
 }
 
 #[derive(Resource, Clone)]
