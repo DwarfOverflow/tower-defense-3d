@@ -107,9 +107,8 @@ fn spawn_basic_scene(
     ));
 
     commands.spawn(( // Target
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Cube {size: 0.4, ..Default::default()})),
-            material: materials.add(Color::rgb(0.67, 0.84, 0.92).into()),
+        SceneBundle {
+            scene: game_assets.target_scene.clone(),
             transform: Transform::from_xyz(-2.0, 0.2, 1.5),
             ..Default::default()
         },
@@ -119,9 +118,8 @@ fn spawn_basic_scene(
     ));
 
     commands.spawn(( // Target
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Cube {size: 0.4, ..Default::default()})),
-            material: materials.add(Color::rgb(0.67, 0.84, 0.92).into()),
+        SceneBundle {
+            scene: game_assets.target_scene.clone(),
             transform: Transform::from_xyz(-3.0, 0.2, 1.5),
             ..Default::default()
         },
