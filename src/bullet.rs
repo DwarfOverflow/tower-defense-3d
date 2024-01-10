@@ -8,9 +8,9 @@ pub struct BulletPlugin;
             .register_type::<Lifetime>()
             .register_type::<Bullet>()
             .add_systems(Update, (
-                bullet_dispawn,
                 move_bullets,
-                bullet_collision
+                bullet_collision,
+                bullet_dispawn
             ));
     }
 }
@@ -55,7 +55,7 @@ fn bullet_collision(
 ) {
     for (bullet, bullet_transform) in &bullets {
         for (mut health, target_transform) in &mut targets {
-            if Vec3::distance(bullet_transform.translation(), target_transform.translation) < 0.2 {
+            if Vec3::distance(bullet_transform.translation(), target_transform.translation) < 0.4 {
                 commands.entity(bullet).despawn_recursive();
                 health.value -= 1;
                 break;

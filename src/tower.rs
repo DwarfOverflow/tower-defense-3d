@@ -45,7 +45,7 @@ fn tower_shooting(
                             transform: Transform::from_translation(tower.bullet_offset),
                             ..Default::default()
                         },
-                        Lifetime { timer: Timer::from_seconds(0.5, TimerMode::Once)},
+                        Lifetime { timer: Timer::from_seconds(5.0, TimerMode::Once)},
                         Bullet {
                             direction,
                             speed: 2.5
