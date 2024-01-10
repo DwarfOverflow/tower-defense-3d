@@ -1,8 +1,8 @@
-use bevy_inspector_egui::{quick::WorldInspectorPlugin, egui::{style::Selection, SelectableLabel}, bevy_inspector::hierarchy::SelectedEntities};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-use bevy::{prelude::*, window::WindowResolution, pbr::NotShadowCaster, transform::commands};
+use bevy::{prelude::*, window::WindowResolution, pbr::NotShadowCaster,};
 
-use bevy_mod_picking::{*, picking_core::Pickable, highlight::Highlight};
+use bevy_mod_picking::{*, highlight::Highlight, prelude::On, events::{Click, Pointer}};
 
 mod bullet;
 mod target;
@@ -144,6 +144,7 @@ fn spawn_basic_scene(
         },
         default_collider_color,
         PickableBundle::default(),
+        On::<Pointer<Click>>::run(build_tower),
         Name::new("Tower_Base")
     )).with_children(|commands| {
         commands.spawn(SceneBundle {

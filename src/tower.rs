@@ -1,4 +1,5 @@
 use bevy::{prelude::*, utils::FloatOrd};
+use bevy_mod_picking::{prelude::{Listener, EntityEvent}, events::{Click, Pointer}};
 use crate::{GameAssets, Target, Lifetime, Bullet};
 
 pub struct TowerPlugin;
@@ -55,4 +56,38 @@ fn tower_shooting(
             }
         }
     }
+}
+
+pub fn build_tower(
+    event: Listener<Pointer<Click>>,
+    entities: Query<(Entity, &Transform)>,
+    mut commands: Commands,
+    assets: Res<GameAssets>,
+) {
+    commands.entity(event.target()).despawn_recursive();
+    for entity in &entities {
+        if entity.0 == event.target {
+            spawn_tomato_tower(commands, &assets, entity.1.translation.clone());
+            return;
+        }
+    }
+}
+
+fn spawn_tomato_tower(mut commands: Commands, assets: &GameAssets, position: Vec3) -> Entity {
+    commands.spawn((
+        SpatialBundle::from_transform(Transform::from_translation(
+            position
+        )),
+        Name::new("Tomato_Tower"),
+        Tower {
+            shooting_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+            bullet_offset: Vec3::new(0.0, 0.6, 0.0)
+        }
+    )).with_children(|commands| {
+        commands.spawn(SceneBundle {
+            scene: assets.tomato_tower_scene.clone(),
+            transform: Transform::from_xyz(0.0, -0.8, 0.0),
+            ..Default::default()
+        });
+    }).id()
 }
