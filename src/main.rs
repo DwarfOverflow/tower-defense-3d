@@ -7,10 +7,12 @@ use bevy_mod_picking::{*, highlight::Highlight, prelude::On, events::{Click, Poi
 mod bullet;
 mod target;
 mod tower;
+mod monney;
 
 pub use bullet::*;
 pub use target::*;
 pub use tower::*;
+pub use monney::*;
 
 fn main() {
     App::new()
@@ -28,6 +30,7 @@ fn main() {
         .add_plugins(TowerPlugin)
         .add_plugins(BulletPlugin)
         .add_plugins(TargetPlugin)
+        .add_plugins(MonneyPlugin)
         .add_plugins(DefaultPickingPlugins)
         .add_systems(Startup, (
             spawn_camera,

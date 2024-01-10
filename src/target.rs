@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::{Monney, TARGET_DEATH_MONNEY};
+
 pub struct TargetPlugin;
 
 impl Plugin for TargetPlugin {
@@ -36,11 +38,13 @@ fn move_targets(
 
 fn target_death(
     mut commands: Commands,
-    targets: Query<(Entity, &Health)>
+    targets: Query<(Entity, &Health)>,
+    mut monney: ResMut<Monney>,
 ) {
     for (ent, health) in &targets {
         if health.value <= 0 {
             commands.entity(ent).despawn_recursive();
+            monney.value += TARGET_DEATH_MONNEY;
         }
     }
 }

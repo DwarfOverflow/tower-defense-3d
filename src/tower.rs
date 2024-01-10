@@ -1,6 +1,6 @@
 use bevy::{prelude::*, utils::FloatOrd};
 use bevy_mod_picking::{prelude::{Listener, EntityEvent}, events::{Click, Pointer}};
-use crate::{GameAssets, Target, Lifetime, Bullet};
+use crate::{GameAssets, Target, Lifetime, Bullet, Monney, TOWER_COST};
 
 pub struct TowerPlugin;
 
@@ -63,7 +63,13 @@ pub fn build_tower(
     entities: Query<(Entity, &Transform)>,
     mut commands: Commands,
     assets: Res<GameAssets>,
+    mut monney: ResMut<Monney>,
 ) {
+    if monney.value < TOWER_COST {
+        return; 
+    } else {
+        monney.value -= TOWER_COST;
+    }
     commands.entity(event.target()).despawn_recursive();
     for entity in &entities {
         if entity.0 == event.target {
