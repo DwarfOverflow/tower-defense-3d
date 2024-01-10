@@ -28,9 +28,9 @@ fn main() {
         .add_plugins(TargetPlugin)
         .add_systems(Startup, (
             spawn_camera,
-            spawn_basic_scene,
             asset_loading
         ))
+        .add_systems(PostStartup, spawn_basic_scene)
         .add_systems(Update, camera_controls)
         .run();
 }
@@ -86,6 +86,7 @@ fn spawn_basic_scene(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    game_assets: Res<GameAssets>,
 ) {
     commands.spawn(PbrBundle { // The Ground
         mesh: meshes.add(Mesh::from(shape::Plane { size: 25., ..Default::default() })),
@@ -94,17 +95,13 @@ fn spawn_basic_scene(
     })
     .insert(Name::new("Ground"));
 
-    commands.spawn(PbrBundle { // A Tower
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1., ..Default::default() })),
-        material: materials.add(Color::rgb(0.67, 0.84, 0.92).into()),
-        transform: Transform::from_xyz(0., 0.5, 0.),
-        ..Default::default()
-    })
-    .insert(Tower {
-        shooting_timer: Timer::from_seconds(1., TimerMode::Repeating),
-        bullet_offset: Vec3::new(0.0, 0.2, 0.5)
-    })
-    .insert(Name::new("Tower"));
+    commands.spawn((
+        SceneBundle {
+            scene: game_assets.tower_base_scene.clone(),
+            ..Default::default()
+        },
+        Name::new("Tower")
+    ));
 
     commands.spawn(( // Target
         PbrBundle {
@@ -133,7 +130,10 @@ fn spawn_basic_scene(
 
 #[derive(Resource, Clone)]
 pub struct GameAssets {
-    bullet_scene: Handle<Scene>,
+    tower_base_scene: Handle<Scene>,
+    tomato_tower_scene: Handle<Scene>,
+    tomato_scene: Handle<Scene>,
+    target_scene: Handle<Scene>,
 }
 
 fn asset_loading(
@@ -141,6 +141,9 @@ fn asset_loading(
     assets: Res<AssetServer>
 ) {
     commands.insert_resource(GameAssets {
-        bullet_scene: assets.load("Bullet.glb#Scene0"),
+        tower_base_scene: assets.load("TowerBase.glb#Scene0"),
+        tomato_tower_scene: assets.load("TomatoTower.glb#Scene0"),
+        tomato_scene: assets.load("Tomato.glb#Scene0"),
+        target_scene: assets.load("Target.glb#Scene0"),
     });
 }
