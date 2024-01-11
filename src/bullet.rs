@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::{Health, Target};
+use crate::{Health, Target, GameState};
 
 pub struct BulletPlugin;
  impl Plugin for BulletPlugin {
@@ -11,7 +11,7 @@ pub struct BulletPlugin;
                 move_bullets,
                 bullet_collision,
                 bullet_dispawn
-            ));
+            ).run_if(in_state(GameState::Gameplay)));
     }
 }
 

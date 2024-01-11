@@ -8,11 +8,13 @@ mod bullet;
 mod target;
 mod tower;
 mod monney;
+mod main_menu;
 
 pub use bullet::*;
 pub use target::*;
 pub use tower::*;
 pub use monney::*;
+pub use main_menu::*;
 
 fn main() {
     App::new()
@@ -32,12 +34,12 @@ fn main() {
         .add_plugins(TargetPlugin)
         .add_plugins(MonneyPlugin)
         .add_plugins(DefaultPickingPlugins)
-        .add_systems(Startup, (
-            spawn_camera,
-            asset_loading
-        ))
-        .add_systems(PostStartup, spawn_basic_scene)
-        .add_systems(Update, camera_controls)
+        .add_plugins(MainMenuPlugin)
+        .add_state::<GameState>()
+        .add_systems(Startup, spawn_camera)
+        .add_systems(OnExit(GameState::MainMenu), asset_loading)
+        .add_systems(OnEnter(GameState::Gameplay), spawn_basic_scene)
+        .add_systems(Update, camera_controls.run_if(in_state(GameState::Gameplay)))
         .run();
 }
 
@@ -174,4 +176,11 @@ fn asset_loading(
         tomato_scene: assets.load("Tomato.glb#Scene0"),
         target_scene: assets.load("Target.glb#Scene0"),
     });
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
+pub enum GameState {
+    #[default]
+    MainMenu,
+    Gameplay
 }

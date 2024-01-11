@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{Monney, TARGET_DEATH_MONNEY};
+use crate::{Monney, TARGET_DEATH_MONNEY, GameState};
 
 pub struct TargetPlugin;
 
@@ -12,7 +12,7 @@ impl Plugin for TargetPlugin {
             .add_systems(Update, (
                 move_targets,
                 target_death
-            ));
+            ).run_if(in_state(GameState::Gameplay)));
     }
 }
 

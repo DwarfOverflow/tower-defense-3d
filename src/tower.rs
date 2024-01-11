@@ -1,6 +1,6 @@
 use bevy::{prelude::*, utils::FloatOrd};
 use bevy_mod_picking::{prelude::{Listener, EntityEvent}, events::{Click, Pointer}};
-use crate::{GameAssets, Target, Lifetime, Bullet, Monney, TOWER_COST};
+use crate::{GameAssets, Target, Lifetime, Bullet, Monney, TOWER_COST, GameState};
 
 pub struct TowerPlugin;
 
@@ -8,7 +8,7 @@ impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
         app
             .register_type::<Tower>()
-            .add_systems(Update, tower_shooting);
+            .add_systems(Update, tower_shooting.run_if(in_state(GameState::Gameplay)));
     }
 }
 
