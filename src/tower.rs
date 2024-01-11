@@ -16,6 +16,7 @@ impl Plugin for TowerPlugin {
 pub struct Tower {
     pub shooting_timer: Timer,
     pub bullet_offset: Vec3,
+    pub range: f32,
 }
 
 fn tower_shooting(
@@ -32,6 +33,9 @@ fn tower_shooting(
 
             let direction = targets
                 .iter()
+                .filter(|target_transform| {
+                    Vec3::distance(target_transform.translation(), bullet_spawn) < tower.range
+                })
                 .min_by_key(|target_transform| {
                     FloatOrd(Vec3::distance(target_transform.translation(), bullet_spawn))
                 })
@@ -87,7 +91,8 @@ fn spawn_tomato_tower(mut commands: Commands, assets: &GameAssets, position: Vec
         Name::new("Tomato_Tower"),
         Tower {
             shooting_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
-            bullet_offset: Vec3::new(0.0, 0.6, 0.0)
+            bullet_offset: Vec3::new(0.0, 0.6, 0.0),
+            range: 4.5,
         }
     )).with_children(|commands| {
         commands.spawn(SceneBundle {

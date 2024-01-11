@@ -117,7 +117,7 @@ fn spawn_basic_scene(
             transform: Transform::from_xyz(-2.0, 0.2, 1.5),
             ..Default::default()
         },
-        Target { speed: 0.3 },
+        Target { speed: 0.3, path_index:0  },
         Health { value: 3},
         Name::new("Target"),
     ));
@@ -128,7 +128,7 @@ fn spawn_basic_scene(
             transform: Transform::from_xyz(-3.0, 0.2, 1.5),
             ..Default::default()
         },
-        Target { speed: 0.3 },
+        Target { speed: 0.3, path_index: 0 },
         Health { value: 3},
         Name::new("Target"),
     ));
